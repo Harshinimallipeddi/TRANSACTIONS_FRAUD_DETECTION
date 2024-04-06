@@ -1,0 +1,114 @@
+Codes:
+
+->(Result.html) Code:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Classification Result</title>
+</head>
+<body>
+    <h1>Classification Result</h1>
+    {% if prediction == 1 %}
+        <p>The transaction is predicted as FRAUD.</p>
+    {% else %}
+        <p>The transaction is predicted as LEGITIMATE.</p>
+    {% endif %}
+    <a href="form.html">Back to Form</a>
+</body>
+</html>
+
+-> (form.html) Code:
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Submit your data</title>
+    </head>
+    <body>
+        <h1>Submit your data</h1>
+        <form action="/submit" method="post">
+            <label>
+                TransactionType:
+                <input type="text" id="TransactionType" name="TransactionType">
+            </label>
+            <br>
+            <label>
+                TransactionAmount:
+                <input type="number" id="TransactionAmount" name="TransactionAmount">
+            </label>
+            <br>
+            <label>
+                SenderAccountID:
+                <input type="text" id="SenderAccountID" name="SenderAccountID">
+            </label>
+            <br>
+            <label>
+                SenderBalanceBefore:
+                <input type="number" id="SenderBalanceBefore" name="SenderBalanceBefore">
+            </label>
+            <br>
+            <label>
+                SenderBalanceAfter:
+                <input type="number" id="SenderBalanceAfter" name="SenderBalanceAfter">
+            </label>
+            <br>
+            <label>
+                RecipientAccountID:
+                <input type="text" id="RecipientAccountID" name="RecipientAccountID">
+            </label>
+            <br>
+            <label>
+                RecipientAccountBefore:
+                <input type="number" id="RecipientAccountBefore" name="RecipientAccountBefore">
+            </label>
+            <br>
+            <label>
+                RecipientAccountAfter:
+                <input type="number" id="RecipientAccountAfter" name="RecipientAccountAfter">
+            </label>
+            <br>
+            <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>
+
+
+-> (flask python  )Code:
+
+import pickle
+import sklearn
+from flask import Flask, request, render_template
+
+app = Flask(_name_)
+
+
+with open('classifier.pkl', 'rb') as file:
+    classifier = pickle.load(file)
+
+@app.route('/')
+def index():
+    return render_template('form.html')
+
+@app.route('/submit', methods=['POST'])
+def submit():
+    TransactionType = request.form['TransactionType']
+    TransactionAmount = float(request.form['TransactionAmount'])
+    SenderAccountID = request.form['SenderAccountID']
+    SenderBalanceBefore = float(request.form['SenderBalanceBefore'])
+    SenderBalanceAfter = float(request.form['SenderBalanceAfter'])
+    RecipientAccountID = request.form['RecipientAccountID']
+    RecipientAccountBefore = float(request.form['RecipientAccountBefore'])
+    RecipientAccountAfter = float(request.form['RecipientAccountAfter'])
+
+    
+    feature_vector = [TransactionType, TransactionAmount, SenderAccountID, SenderBalanceBefore,
+                      SenderBalanceAfter, RecipientAccountID, RecipientAccountBefore, RecipientAccountAfter]
+
+    prediction = classifier.predict([feature_vector])[0]
+
+    return render_template('result.html', prediction=prediction)
+
+if _name_ == '_main_':
+    app.run(debug=True)
+
+->(
